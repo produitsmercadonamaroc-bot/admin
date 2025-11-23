@@ -70,7 +70,6 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         // CORRECTION CRITIQUE: On ne stocke que les infos essentielles (uid, email)
-        // Stocker l'objet currentUser entier cause l'erreur "circular structure to JSON"
         setUser({
             uid: currentUser.uid,
             email: currentUser.email
@@ -564,7 +563,8 @@ function App() {
             </div>
 
             <div className="p-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
+              {/* Force Grid to 7 columns on Desktop (lg+) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
                 {filteredProducts.map(product => (
                   <div 
                     key={product.id} 
