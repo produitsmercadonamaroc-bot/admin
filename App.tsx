@@ -38,6 +38,9 @@ function App() {
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [search, setSearch] = useState('');
   
+  // Navigation State
+  const [currentView, setCurrentView] = useState<'products' | 'packs'>('products');
+
   // Modals State
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isAddPackOpen, setIsAddPackOpen] = useState(false);
@@ -69,7 +72,6 @@ function App() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        // CORRECTION CRITIQUE: On ne stocke que les infos essentielles (uid, email)
         setUser({
             uid: currentUser.uid,
             email: currentUser.email
@@ -123,6 +125,8 @@ function App() {
     const totalSold = sales.reduce((acc, s) => acc + (Number(s.quantity) || 0), 0);
     
     const stockValue = products.reduce((acc, p) => {
+      // On ne compte la valeur du stock que pour les produits simples pour éviter les doublons avec les packs
+      if (p.category === 'pack') return acc;
       const price = Number(p.purchasePrice) || 0;
       const stock = Number(p.stock) || 0;
       return acc + (price * stock);
@@ -339,9 +343,24 @@ function App() {
     }
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter products based on search AND current view (Simple Products vs Packs)
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    const nameHasPack = p.name.toLowerCase().includes('pack');
+
+    // Logic de filtration mise à jour
+    let matchesType = false;
+    
+    if (currentView === 'packs') {
+      // Afficher si c'est explicitement un pack OU si le nom contient "pack"
+      matchesType = p.category === 'pack' || nameHasPack;
+    } else {
+      // Afficher si c'est explicitement simple OU (pas de catégorie ET pas "pack" dans le nom)
+      matchesType = p.category === 'simple' || (!p.category && !nameHasPack);
+    }
+
+    return matchesSearch && matchesType;
+  });
 
   const availableForPack = products.filter(p => 
     (!p.category || p.category === 'simple') && 
@@ -452,14 +471,20 @@ function App() {
         <div className="flex-1 py-8 px-4 space-y-2">
           <div className="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 hidden lg:block">Navigation</div>
           
-          <a href="#" className="flex items-center gap-3 px-4 py-3.5 bg-indigo-50 text-indigo-600 rounded-xl font-medium transition-all group">
-            <PackageIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span className="hidden lg:block">Dashboard</span>
-          </a>
+          <button 
+            onClick={() => setCurrentView('products')} 
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all group ${currentView === 'products' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+          >
+            <PackageIcon className={`w-5 h-5 ${currentView === 'products' ? '' : 'group-hover:scale-110'} transition-transform`} />
+            <span className="hidden lg:block">Les Produits</span>
+          </button>
           
-          <button onClick={() => setIsAddPackOpen(true)} className="w-full flex items-center gap-3 px-4 py-3.5 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-all group">
-            <LayersIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span className="hidden lg:block">Nouveau Pack</span>
+          <button 
+            onClick={() => setCurrentView('packs')} 
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all group ${currentView === 'packs' ? 'bg-amber-50 text-amber-600' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+          >
+            <LayersIcon className={`w-5 h-5 ${currentView === 'packs' ? '' : 'group-hover:scale-110'} transition-transform`} />
+            <span className="hidden lg:block">Les Packs</span>
           </button>
         </div>
 
@@ -477,7 +502,9 @@ function App() {
         {/* Top Header */}
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 z-20 sticky top-0">
           <div className="flex items-center gap-4">
-             <h2 className="text-xl font-bold text-slate-800 hidden sm:block">Vue d'ensemble</h2>
+             <h2 className="text-xl font-bold text-slate-800 hidden sm:block">
+                {currentView === 'products' ? 'Les Produits' : 'Les Packs'}
+             </h2>
              <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full border border-indigo-100">
                 Pro
              </span>
@@ -495,22 +522,23 @@ function App() {
               />
             </div>
 
-            {/* NEW MOBILE ADD PACK BUTTON */}
+            {/* NEW MOBILE ADD PACK BUTTON - ONLY ON PACK VIEW */}
             <button 
                 onClick={() => setIsAddPackOpen(true)}
-                className="md:hidden flex items-center gap-2 px-3 py-2.5 bg-amber-50 text-amber-600 text-sm font-semibold rounded-xl hover:bg-amber-100 transition-all active:scale-95 border border-amber-100"
+                className={`${currentView === 'packs' ? 'flex' : 'hidden'} md:hidden items-center gap-2 px-3 py-2.5 bg-amber-50 text-amber-600 text-sm font-semibold rounded-xl hover:bg-amber-100 transition-all active:scale-95 border border-amber-100`}
                 title="Nouveau Pack"
               >
                 <LayersIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Pack</span>
             </button>
 
+            {/* MAIN ACTION BUTTON (Dynamic based on view) */}
             <button 
-                onClick={() => setIsAddProductOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/20 transition-all transform active:scale-95"
+                onClick={() => currentView === 'packs' ? setIsAddPackOpen(true) : setIsAddProductOpen(true)}
+                className={`flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all transform active:scale-95 ${currentView === 'packs' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/20'}`}
               >
-                <PlusIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Produit</span>
+                {currentView === 'packs' ? <LayersIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
+                <span className="hidden sm:inline">{currentView === 'packs' ? 'Créer Pack' : 'Ajouter Produit'}</span>
             </button>
           </div>
         </header>
@@ -564,7 +592,7 @@ function App() {
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
             <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
               <div>
-                <h3 className="text-lg font-bold text-slate-800">Inventaire</h3>
+                <h3 className="text-lg font-bold text-slate-800">Inventaire ({filteredProducts.length})</h3>
               </div>
               <div className="flex gap-2">
                  <button className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">Exporter</button>
@@ -660,7 +688,7 @@ function App() {
       </main>
 
       {/* --- MODALS --- */}
-      {/* ... (Existing modals remain unchanged) ... */}
+      {/* ... (Rest of the modals remain unchanged) ... */}
       
       {/* Product Info Modal (Details) */}
       <Modal
