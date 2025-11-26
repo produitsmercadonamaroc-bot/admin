@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -10,6 +11,7 @@ export interface Product {
   packItems?: PackItem[]; // Only if category is 'pack'
   totalSold: number;
   createdAt: number;
+  isOrderBased?: boolean;
 }
 
 export interface PackItem {

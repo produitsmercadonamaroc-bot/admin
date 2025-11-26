@@ -54,7 +54,7 @@ function App() {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   // Form States
-  const [newProduct, setNewProduct] = useState<Partial<Product>>({ name: '', stock: 0, purchasePrice: 0, salePrice: 0, image: '', description: '' });
+  const [newProduct, setNewProduct] = useState<Partial<Product>>({ name: '', stock: 0, purchasePrice: 0, salePrice: 0, image: '', description: '', isOrderBased: false });
   const [editFormData, setEditFormData] = useState<Partial<Product>>({});
   
   // Pack Form States
@@ -62,6 +62,7 @@ function App() {
   const [newPackPrice, setNewPackPrice] = useState(0);
   const [newPackImage, setNewPackImage] = useState('');
   const [newPackDescription, setNewPackDescription] = useState('');
+  const [newPackIsOrderBased, setNewPackIsOrderBased] = useState(false);
   const [packItems, setPackItems] = useState<PackItem[]>([]);
   const [packProductSearch, setPackProductSearch] = useState(''); 
 
@@ -156,14 +157,15 @@ function App() {
             category: 'simple',
             totalSold: 0,
             createdAt: Date.now(),
-            image: newProduct.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(newProduct.name || 'P')}&background=random&size=200`
+            image: newProduct.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(newProduct.name || 'P')}&background=random&size=200`,
+            isOrderBased: newProduct.isOrderBased || false
         };
 
         const addedProduct = await addProductToDb(productData);
         if (addedProduct) {
             setProducts([addedProduct, ...products]);
             setIsAddProductOpen(false);
-            setNewProduct({ name: '', stock: 0, purchasePrice: 0, salePrice: 0, image: '', description: '' });
+            setNewProduct({ name: '', stock: 0, purchasePrice: 0, salePrice: 0, image: '', description: '', isOrderBased: false });
         }
     } catch (error) {
         alert("Erreur: " + error);
@@ -187,7 +189,8 @@ function App() {
             packItems: packItems,
             totalSold: 0,
             createdAt: Date.now(),
-            image: newPackImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(newPackName)}&background=random&size=200`
+            image: newPackImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(newPackName)}&background=random&size=200`,
+            isOrderBased: newPackIsOrderBased
         };
 
         const addedPack = await addProductToDb(packData);
@@ -198,6 +201,7 @@ function App() {
             setNewPackPrice(0);
             setNewPackImage('');
             setNewPackDescription('');
+            setNewPackIsOrderBased(false);
             setPackItems([]);
         }
     } catch (error) {
@@ -235,7 +239,7 @@ function App() {
     if (!selectedProduct || !user) return;
 
     const qty = Number(sellQty);
-    if (qty > selectedProduct.stock && selectedProduct.category === 'simple') {
+    if (qty > selectedProduct.stock && selectedProduct.category === 'simple' && !selectedProduct.isOrderBased) {
       alert("Stock insuffisant !");
       return;
     }
@@ -305,7 +309,8 @@ function App() {
         purchasePrice: Number(product.purchasePrice),
         salePrice: Number(product.salePrice),
         stock: Number(product.stock),
-        image: product.image || ''
+        image: product.image || '',
+        isOrderBased: product.isOrderBased || false
     });
     setIsEditModalOpen(true);
   };
@@ -327,12 +332,13 @@ function App() {
             purchasePrice: Number(editFormData.purchasePrice),
             salePrice: Number(editFormData.salePrice),
             stock: Number(editFormData.stock),
-            image: editFormData.image
+            image: editFormData.image,
+            isOrderBased: editFormData.isOrderBased
         });
 
         const updatedProducts = products.map(p => 
             p.id === selectedProduct.id 
-                ? { ...p, ...editFormData, purchasePrice: Number(editFormData.purchasePrice), salePrice: Number(editFormData.salePrice), stock: Number(editFormData.stock) } as Product
+                ? { ...p, ...editFormData, purchasePrice: Number(editFormData.purchasePrice), salePrice: Number(editFormData.salePrice), stock: Number(editFormData.stock), isOrderBased: editFormData.isOrderBased } as Product
                 : p
         );
         setProducts(updatedProducts);
@@ -643,8 +649,14 @@ function App() {
                        </div>
                        {/* Pack Badge */}
                        {product.category === 'pack' && (
-                         <div className="absolute top-2 left-2 px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1">
+                         <div className="absolute top-2 left-2 px-2 py-1 bg-indigo-600 text-white text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1 z-10">
                            <LayersIcon className="w-3 h-3" /> Pack
+                         </div>
+                       )}
+                       {/* Sur Commande Badge */}
+                       {product.isOrderBased && (
+                         <div className="absolute top-2 right-2 px-2 py-1 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-full shadow-sm flex items-center gap-1 z-10">
+                           Sur Commande
                          </div>
                        )}
                     </div>
@@ -688,7 +700,6 @@ function App() {
       </main>
 
       {/* --- MODALS --- */}
-      {/* ... (Rest of the modals remain unchanged) ... */}
       
       {/* Product Info Modal (Details) */}
       <Modal
@@ -713,6 +724,11 @@ function App() {
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${selectedProduct.stock > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}`}>
                       {selectedProduct.stock > 0 ? 'En Stock' : 'Rupture'}
                     </span>
+                    {selectedProduct.isOrderBased && (
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold border bg-purple-50 text-purple-700 border-purple-100">
+                            Sur Commande
+                        </span>
+                    )}
                     <span className="text-xs text-slate-500">
                        Réf: {selectedProduct.id.substring(0,8).toUpperCase()}
                     </span>
@@ -849,6 +865,19 @@ function App() {
             />
           </div>
 
+          <div className="flex items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-200">
+             <input 
+               type="checkbox" 
+               id="newProductOrderBased"
+               className="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 cursor-pointer accent-purple-600"
+               checked={newProduct.isOrderBased || false}
+               onChange={e => setNewProduct({...newProduct, isOrderBased: e.target.checked})}
+             />
+             <label htmlFor="newProductOrderBased" className="text-sm font-bold text-purple-800 cursor-pointer select-none">
+               Sur commande
+             </label>
+          </div>
+
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Image & Description <span className="text-slate-300 font-normal normal-case">(Optionnel)</span></label>
             <input 
@@ -921,6 +950,19 @@ function App() {
               />
             </div>
           )}
+
+          <div className="flex items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-200">
+             <input 
+               type="checkbox" 
+               id="editProductOrderBased"
+               className="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 cursor-pointer accent-purple-600"
+               checked={editFormData.isOrderBased || false}
+               onChange={e => setEditFormData({...editFormData, isOrderBased: e.target.checked})}
+             />
+             <label htmlFor="editProductOrderBased" className="text-sm font-bold text-purple-800 cursor-pointer select-none">
+               Sur commande
+             </label>
+          </div>
 
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Infos supplémentaires</label>
@@ -1035,6 +1077,19 @@ function App() {
               </div>
             </div>
           )}
+
+          <div className="flex items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-200">
+             <input 
+               type="checkbox" 
+               id="newPackOrderBased"
+               className="w-5 h-5 rounded border-purple-300 text-purple-600 focus:ring-purple-500 cursor-pointer accent-purple-600"
+               checked={newPackIsOrderBased}
+               onChange={e => setNewPackIsOrderBased(e.target.checked)}
+             />
+             <label htmlFor="newPackOrderBased" className="text-sm font-bold text-purple-800 cursor-pointer select-none">
+               Sur commande
+             </label>
+          </div>
 
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
              <div>
