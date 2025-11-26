@@ -60,6 +60,7 @@ function App() {
   // Pack Form States
   const [newPackName, setNewPackName] = useState('');
   const [newPackPrice, setNewPackPrice] = useState(0);
+  const [newPackStock, setNewPackStock] = useState(0);
   const [newPackImage, setNewPackImage] = useState('');
   const [newPackDescription, setNewPackDescription] = useState('');
   const [newPackIsOrderBased, setNewPackIsOrderBased] = useState(false);
@@ -184,7 +185,7 @@ function App() {
             description: newPackDescription || '',
             purchasePrice: packCost,
             salePrice: Number(newPackPrice) || 0,
-            stock: 0, 
+            stock: Number(newPackStock) || 0, 
             category: 'pack',
             packItems: packItems,
             totalSold: 0,
@@ -199,6 +200,7 @@ function App() {
             setIsAddPackOpen(false);
             setNewPackName('');
             setNewPackPrice(0);
+            setNewPackStock(0);
             setNewPackImage('');
             setNewPackDescription('');
             setNewPackIsOrderBased(false);
@@ -1077,6 +1079,16 @@ function App() {
               </div>
             </div>
           )}
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Stock Initial</label>
+            <input 
+              type="number" min="0" required
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none font-medium"
+              value={newPackStock}
+              onChange={e => setNewPackStock(Number(e.target.value))}
+            />
+          </div>
 
           <div className="flex items-center gap-3 bg-purple-50 p-3 rounded-xl border border-purple-200">
              <input 

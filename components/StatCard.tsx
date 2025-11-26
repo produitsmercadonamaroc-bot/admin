@@ -38,7 +38,9 @@ export const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, t
         </div>
         
         <div className={`p-3 rounded-xl ${styles.bg} ${styles.text} ring-1 ${styles.ring}`}>
-          {React.cloneElement(icon as React.ReactElement, { className: "w-6 h-6" })}
+          {React.isValidElement(icon) 
+            ? React.cloneElement(icon as React.ReactElement<any>, { className: "w-6 h-6" })
+            : icon}
         </div>
       </div>
       
