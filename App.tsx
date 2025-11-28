@@ -467,7 +467,7 @@ function App() {
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
       
-      {/* Sidebar Ultra Modern */}
+      {/* Sidebar Ultra Modern (Desktop Only) */}
       <aside className="hidden md:flex flex-col w-20 lg:w-72 bg-white border-r border-slate-200 z-30 transition-all">
         <div className="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-slate-100">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-600/20 shrink-0">
@@ -507,61 +507,61 @@ function App() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative bg-[#F8FAFC]">
         
-        {/* Top Header */}
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 z-20 sticky top-0">
-          <div className="flex items-center gap-4">
-             <h2 className="text-xl font-bold text-slate-800 hidden sm:block">
-                {currentView === 'products' ? 'Les Produits' : 'Les Packs'}
-             </h2>
-             <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full border border-indigo-100">
-                Pro
-             </span>
+        {/* Top Header - Improved Responsiveness */}
+        <header className="h-auto py-3 md:py-0 md:h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex flex-wrap md:flex-nowrap items-center justify-between px-4 md:px-8 z-20 sticky top-0 gap-3">
+          
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+             <div className="flex items-center gap-3">
+                 <h2 className="text-lg md:text-xl font-bold text-slate-800">
+                    {currentView === 'products' ? 'Produits' : 'Packs'}
+                 </h2>
+                 <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 text-[10px] md:text-xs font-bold rounded-full border border-indigo-100">
+                    Pro
+                 </span>
+             </div>
+             {/* Mobile Add Button - Visible only on mobile, aligned right of first row */}
+             <button 
+                onClick={() => currentView === 'packs' ? setIsAddPackOpen(true) : setIsAddProductOpen(true)}
+                className="md:hidden flex items-center justify-center w-8 h-8 bg-slate-900 text-white rounded-lg shadow-sm"
+             >
+                <PlusIcon className="w-5 h-5" />
+             </button>
           </div>
           
-          <div className="flex items-center gap-4 flex-1 justify-end max-w-2xl">
-            <div className="relative group w-full max-w-md hidden sm:block">
-              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+          <div className="flex items-center gap-3 w-full md:w-auto md:flex-1 justify-end">
+            <div className="relative group w-full md:max-w-md">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
               <input 
                 type="text" 
-                placeholder="Rechercher (Cmd+K)" 
+                placeholder="Rechercher..." 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-100 border-none rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:shadow-lg transition-all"
+                className="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:shadow-lg transition-all"
               />
             </div>
 
-            {/* NEW MOBILE ADD PACK BUTTON - ONLY ON PACK VIEW */}
-            <button 
-                onClick={() => setIsAddPackOpen(true)}
-                className={`${currentView === 'packs' ? 'flex' : 'hidden'} md:hidden items-center gap-2 px-3 py-2.5 bg-amber-50 text-amber-600 text-sm font-semibold rounded-xl hover:bg-amber-100 transition-all active:scale-95 border border-amber-100`}
-                title="Nouveau Pack"
-              >
-                <LayersIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Pack</span>
-            </button>
-
-            {/* MAIN ACTION BUTTON (Dynamic based on view) */}
+            {/* Desktop Add Button */}
             <button 
                 onClick={() => currentView === 'packs' ? setIsAddPackOpen(true) : setIsAddProductOpen(true)}
-                className={`flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all transform active:scale-95 ${currentView === 'packs' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-200' : 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/20'}`}
+                className="hidden md:flex items-center gap-2 px-5 py-2.5 text-white text-sm font-semibold rounded-xl hover:shadow-lg transition-all transform active:scale-95 bg-slate-900 hover:bg-slate-800 shadow-slate-900/20"
               >
                 {currentView === 'packs' ? <LayersIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
-                <span className="hidden sm:inline">{currentView === 'packs' ? 'Créer Pack' : 'Ajouter Produit'}</span>
+                <span>{currentView === 'packs' ? 'Créer Pack' : 'Ajouter Produit'}</span>
             </button>
           </div>
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-32">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-10">
           
           {/* Welcome Section */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-slate-900">Bonjour 👋</h1>
-            <p className="text-slate-500">Voici ce qui se passe dans votre stock aujourd'hui.</p>
+          <div className="mb-6 md:mb-8">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Bonjour 👋</h1>
+            <p className="text-sm md:text-base text-slate-500">Voici ce qui se passe dans votre stock aujourd'hui.</p>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10">
             <StatCard 
               title="Revenu Total" 
               value={`${stats.revenue.toFixed(2)} DH`} 
@@ -598,19 +598,19 @@ function App() {
 
           {/* Main Content - Product Grid */}
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
-            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
+            <div className="px-6 md:px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-800">Inventaire ({filteredProducts.length})</h3>
               </div>
-              <div className="flex gap-2">
+              <div className="hidden md:flex gap-2">
                  <button className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">Exporter</button>
                  <button className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">Filtres</button>
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               {/* Force Grid to 7 columns on Desktop (lg+) */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
                 {filteredProducts.map(product => (
                   <div 
                     key={product.id} 
@@ -699,6 +699,34 @@ function App() {
             </div>
           </div>
         </div>
+        
+        {/* Mobile Bottom Navigation - Visible only on mobile */}
+        <div className="md:hidden absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-30 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <button 
+                onClick={() => setCurrentView('products')}
+                className={`flex flex-col items-center gap-1 transition-colors ${currentView === 'products' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+                <PackageIcon className="w-6 h-6" />
+                <span className="text-[10px] font-bold">Produits</span>
+            </button>
+            
+            <button 
+                onClick={() => setCurrentView('packs')}
+                className={`flex flex-col items-center gap-1 transition-colors ${currentView === 'packs' ? 'text-amber-600' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+                <LayersIcon className="w-6 h-6" />
+                <span className="text-[10px] font-bold">Packs</span>
+            </button>
+
+            <button 
+                onClick={handleLogout}
+                className="flex flex-col items-center gap-1 text-slate-400 hover:text-rose-600 transition-colors"
+            >
+                <XIcon className="w-6 h-6" />
+                <span className="text-[10px] font-bold">Sortir</span>
+            </button>
+        </div>
+
       </main>
 
       {/* --- MODALS --- */}
